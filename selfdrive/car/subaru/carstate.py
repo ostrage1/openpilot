@@ -131,6 +131,16 @@ class CarState(CarStateBase):
         ("BodyInfo", 1),
         ("CruiseControl", 50),
       ]
+
+      if CP.carFingerprint in [CAR.FORESTER_PREGLOBAL, CAR.WRX_PREGLOBAL]:
+        checks += [
+          ("Dashlights", 20),
+        ]
+      elif CP.carFingerprint in [CAR.LEGACY_PREGLOBAL, CAR.OUTBACK_PREGLOBAL, CAR.OUTBACK_PREGLOBAL_2018]:
+        checks += [
+          ("Dashlights", 10),
+        ]
+
     else:
       signals += [
         ("Steer_Warning", "Steering_Torque", 0),
@@ -142,15 +152,6 @@ class CarState(CarStateBase):
         ("CruiseControl", 20),
       ]
 
-    if CP.carFingerprint in [CAR.FORESTER_PREGLOBAL, CAR.WRX_PREGLOBAL]:
-      checks += [
-        ("Dashlights", 20),
-      ]
-
-    if CP.carFingerprint in [CAR.LEGACY_PREGLOBAL, CAR.OUTBACK_PREGLOBAL, CAR.OUTBACK_PREGLOBAL_2018]:
-      checks += [
-        ("Dashlights", 10),
-      ]
 
     return CANParser(DBC[CP.carFingerprint]['pt'], signals, checks, 0)
 
