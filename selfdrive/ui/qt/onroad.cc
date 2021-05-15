@@ -7,14 +7,40 @@
 #include "selfdrive/ui/paint.h"
 #include "selfdrive/ui/qt/util.h"
 
+#ifdef ENABLE_MAPS
+#include "selfdrive/ui/qt/widgets/map.h"
+#endif
+
 OnroadWindow::OnroadWindow(QWidget *parent) : QWidget(parent) {
   layout = new QStackedLayout();
   layout->setStackingMode(QStackedLayout::StackAll);
 
   // old UI on bottom
   nvg = new NvgWindow(this);
-  layout->addWidget(nvg);
   QObject::connect(this, &OnroadWindow::update, nvg, &NvgWindow::update);
+
+  QHBoxLayout* split = new QHBoxLayout();
+  split->setContentsMargins(0, 0, 0, 0);
+  split->setSpacing(0);
+  split->addWidget(nvg);
+
+#ifdef ENABLE_MAPS
+  QString token = QString::fromStdString(Params().get("MapboxToken"));
+  if (!token.isEmpty()){
+    QMapboxGLSettings settings;
+    settings.setCacheDatabasePath("/tmp/mbgl-cache.db");
+    settings.setCacheDatabaseMaximumSize(20 * 1024 * 1024);
+    settings.setAccessToken(token);
+    map = new MapWindow(settings);
+    split->addWidget(map);
+
+    connect(map, SIGNAL(updateAR(QList<Eigen::Vector3d>)), nvg, SLOT(updateAR(QList<Eigen::Vector3d>)));
+  }
+#endif
+
+  QWidget * split_wrapper = new QWidget;
+  split_wrapper->setLayout(split);
+  layout->addWidget(split_wrapper);
 
   alerts = new OnroadAlerts(this);
   QObject::connect(this, &OnroadWindow::update, alerts, &OnroadAlerts::updateState);
@@ -193,6 +219,10 @@ void NvgWindow::update(const UIState &s) {
   repaint();
 }
 
+void NvgWindow::resizeGL(int w, int h) {
+  ui_resize(&QUIState::ui_state, w, h);
+}
+
 void NvgWindow::paintGL() {
   ui_draw(&QUIState::ui_state, width(), height());
 
@@ -203,4 +233,19 @@ void NvgWindow::paintGL() {
     LOGW("slow frame time: %.2f", dt);
   }
   prev_draw_t = cur_draw_t;
+}
+
+
+void NvgWindow::updateAR(QList<Eigen::Vector3d> path) {
+  std::vector<vec3> points;
+  float y0 = path.size() ? path[0][1] : 0;
+
+  if (path.size()){
+    points.push_back({{3, 0, 0}});
+  }
+  for (auto &c : path) {
+    points.push_back({{(float)c[0], (float)c[1] - y0, 0}});
+  }
+
+  QUIState::ui_state.ar_nav_points = points;
 }

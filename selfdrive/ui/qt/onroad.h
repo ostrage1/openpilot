@@ -2,6 +2,7 @@
 
 #include <map>
 
+#include <eigen3/Eigen/Dense>
 #include <QSoundEffect>
 #include <QtWidgets>
 
@@ -66,12 +67,15 @@ public:
 protected:
   void paintGL() override;
   void initializeGL() override;
+  void resizeGL(int w, int h) override;
 
 private:
   double prev_draw_t = 0;
 
 public slots:
   void update(const UIState &s);
+  void updateAR(QList<Eigen::Vector3d> path);
+
 };
 
 // container for all onroad widgets
@@ -80,6 +84,7 @@ class OnroadWindow : public QWidget {
 
 public:
   OnroadWindow(QWidget* parent = 0);
+  QWidget *map = nullptr;
 
 private:
   OnroadAlerts *alerts;
