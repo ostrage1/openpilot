@@ -84,7 +84,8 @@ def only_toyota_left(candidate_cars):
 
 # **** for use live only ****
 def fingerprint(logcan, sendcan):
-  fixed_fingerprint = os.environ.get('FINGERPRINT', "")
+  fixed_fingerprint = "SUBARU LEGACY 2015 - 2018"
+  #os.environ.get('FINGERPRINT', "")
   skip_fw_query = os.environ.get('SKIP_FW_QUERY', False)
 
   if not fixed_fingerprint and not skip_fw_query:
